@@ -6,7 +6,7 @@ resource "aws_s3_bucket" "tfstate_bucket" {
   bucket = "tfstate-bucket-final-unique"
   force_destroy = true
   versioning {
-    enabled = true
+    enabled = false
   }
 }
 
