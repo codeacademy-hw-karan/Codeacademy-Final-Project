@@ -96,6 +96,17 @@
       args:
         chdir: /home/ec2-user
 
+    - name: Create Prometheus configuration file with EC2 public IP
+      copy:
+        dest: /home/ec2-user/prometheus.yml
+        content: |
+          global:
+            scrape_interval: 15s  # Scrape every 15 seconds
+          scrape_configs:
+            - job_name: 'gatus-metrics'
+              static_configs:
+                - targets: ["{{ ec2_public_ip.stdout }}:8000/metrics"]
+
     - name: Run Prometheus Docker container
       command: >
         docker run -d --name prometheus --network monitoring-net -p 80:9090
