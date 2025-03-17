@@ -29,8 +29,10 @@
         name: git
         state: present
 
-    # - name: Ensure monitoring-net Docker network exists
-    #   command: docker network create monitoring-net
+    - name: Ensure monitoring-net Docker network exists
+      command: docker network create monitoring-net
+      register: create_network
+      failed_when: create_network.rc != 0 and 'already exists' not in create_network.stderr
 
     - name: Create models directory
       file:
