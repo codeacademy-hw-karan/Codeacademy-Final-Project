@@ -12,7 +12,6 @@
         name: docker
         state: present
 
-   
     - name: Add ec2-user to docker group
       user:
         name: ec2-user
@@ -48,6 +47,28 @@
         dest: /home/ec2-user/models/tinyllama-1.1b-1t-openorca.Q2_K.gguf
         mode: '0644'
 
+    - name: Retrieve EC2 public IP
+      command: curl http://169.254.169.254/latest/meta-data/public-ipv4
+      register: ec2_public_ip
+      changed_when: false
+
+    - name: Create Gatus configuration file with EC2 public IP
+      copy:
+        dest: /home/ec2-user/gatus-config.yml
+        content: |
+          endpoints:
+            - name: Health Check
+              url: "http://{{ ec2_public_ip.stdout }}:8000/health"
+              interval: 30s
+              conditions:
+                - "[STATUS] == 200"
+
+            - name: Metrics Endpoint
+              url: "http://{{ ec2_public_ip.stdout }}:8000/metrics"
+              interval: 30s
+              conditions:
+                - "[STATUS] == 200"
+
     - name: Run Llama model Docker container
       command: >
         docker run --rm  -d --network monitoring-net  -v /home/ec2-user/models:/models -p 8000:8000
@@ -63,20 +84,22 @@
 
     - name: Run Gatus Docker container
       command: >
-        docker run -d --name gatus --network monitoring-net -p 8080:8080 -v /home/ec2-user/gatus-config.yml:/config/config.yaml twinproduction/gatus
+        docker run -d --name gatus --network monitoring-net -p 8080:8080
+        -v /home/ec2-user/gatus-config.yml:/config/config.yaml
+        twinproduction/gatus
       args:
         chdir: /home/ec2-user
-    
+
     - name: Remove existing prometheus container if present
       command: docker rm -f prometheus
       ignore_errors: yes
       args:
         chdir: /home/ec2-user
-    
+
     - name: Run Prometheus Docker container
       command: >
-        docker run -d --name prometheus --network monitoring-net -p 80:9090 -v /home/ec2-user/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
+        docker run -d --name prometheus --network monitoring-net -p 80:9090
+        -v /home/ec2-user/prometheus.yml:/etc/prometheus/prometheus.yml
+        prom/prometheus
       args:
         chdir: /home/ec2-user
-
-
