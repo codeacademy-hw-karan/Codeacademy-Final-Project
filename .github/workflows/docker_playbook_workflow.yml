@@ -1,0 +1,49 @@
+name: Install docker and git and run the server
+
+on:
+    workflow_dispatch:
+        inputs:
+            vm_ip:
+                description: Please enter your EC2 IP 
+                required: true
+                default: 'default ip'
+
+jobs:
+  ansible:
+
+    name: Run Ansible Playbook
+  #needs: te+rraform  # Ensure this job runs after the terraform job
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./playbooks
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2  # Correct use of `uses`
+
+    # Set up AWS credentials for accessing EC2
+    - name: Set up AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1  # Correct use of `uses`
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-north-1
+        
+    - name: Create SSH directory
+      run: mkdir -p ~/.ssh
+
+    - name: Add host to known hosts
+      run: ssh-keyscan -H ${{ github.event.inputs.vm_ip }} > ~/.ssh/known_hosts
+
+    # Add the SSH private key from GitHub Secrets
+    - name: Add SSH private key
+      run: |
+      
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa  # Correct use of `run`
+
+    # Run Ansible Playbook to install Docker, Git, and run commands
+    - name: Run Ansible Playbook
+      run: |
+        ansible-playbook -i  ${{ github.event.inputs.vm_ip }}, --private-key ~/.ssh/id_rsa --user ec2-user install_deps.yml  # Correct use of `run`
