@@ -61,7 +61,7 @@
 
     - name: Run Gatus Docker container
       command: >
-        docker run -d --name gatus --network monitoring-net -p 8000:8080 -v /home/ec2-user/gatus-config.yml:/config/config.yaml twinproduction/gatus
+        docker run -d --name gatus --network monitoring-net -p 8080:8080 -v /home/ec2-user/gatus-config.yml:/config/config.yaml twinproduction/gatus
       args:
         chdir: /home/ec2-user
     
