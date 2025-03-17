@@ -29,6 +29,9 @@
         name: git
         state: present
 
+    - name: Ensure monitoring-net Docker network exists
+      command: docker network create monitoring-net
+
     - name: Create models directory
       file:
         path: /home/ec2-user/models
