@@ -24,8 +24,13 @@ jobs:
     - name: Terraform Init
       working-directory: ./terraform
       run: terraform init  # This will use the existing remote backend configuration
+    
+    # Terraform Destroy
+    - name: Terraform Destroy
+      working-directory: ./terraform
+      run: terraform destroy -auto-approve  # Destroy infrastructure using remote state
 
-    # Delete S3 bucket
+       # Delete S3 bucket
     - name: Delete S3 bucket 
       run: |
         aws s3 rm s3://tfstate-bucket-final-unique --recursive
@@ -34,10 +39,3 @@ jobs:
     - name: Delete DynamoDB table
       run: |
         aws dynamodb delete-table --region eu-north-1 --table-name tfstate-lock-final 
-
-    
-    
-    # Terraform Destroy
-    - name: Terraform Destroy
-      working-directory: ./terraform
-      run: terraform destroy -auto-approve  # Destroy infrastructure using remote state
