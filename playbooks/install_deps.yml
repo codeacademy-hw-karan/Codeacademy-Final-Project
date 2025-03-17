@@ -45,7 +45,7 @@
 
     - name: Run Llama model Docker container
       command: >
-        docker run --rm  -d -v /home/ec2-user/models:/models -p 8000:8000
+        docker run --rm  -d --network monitoring-net  -v /home/ec2-user/models:/models -p 8000:8000
         ghcr.io/ggml-org/llama.cpp:server -m /models/tinyllama-1.1b-1t-openorca.Q2_K.gguf
       args:
         chdir: /home/ec2-user
